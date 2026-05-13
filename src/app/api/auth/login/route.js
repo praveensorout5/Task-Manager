@@ -54,7 +54,8 @@ export async function POST(req) {
 
     return response;
   } catch (error) {
-    console.error('Login error:', error);
-    return apiError('Failed to login');
+    console.error('CRITICAL LOGIN ERROR:', error);
+    // Return the actual error message in dev or a slightly more descriptive one in prod
+    return apiError(`Failed to login: ${error.message || 'Unknown error'}`);
   }
 }
