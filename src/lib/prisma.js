@@ -7,9 +7,17 @@ const globalForPrisma = globalThis;
  */
 const getDatabaseUrl = () => {
   let url = process.env.DATABASE_URL;
-  if (url && url.startsWith('postgres://')) {
+  if (!url) {
+    console.error('❌ DATABASE_URL is NOT set in environment!');
+    return '';
+  }
+  
+  if (url.startsWith('postgres://')) {
     url = url.replace('postgres://', 'postgresql://');
   }
+  
+  // Log a masked version for debugging
+  console.log(`📡 Prisma connecting to: ${url.split('@')[1] || 'URL format unexpected'}`);
   return url;
 };
 

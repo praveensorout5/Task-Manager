@@ -1,6 +1,12 @@
 #!/bin/sh
 
 # Sync database schema
+if [ -z "$DATABASE_URL" ]; then
+  echo "❌ Error: DATABASE_URL is not set!"
+else
+  echo "✅ DATABASE_URL is set (Length: ${#DATABASE_URL})"
+fi
+
 echo "🔄 Syncing database schema..."
 npx prisma db push --accept-data-loss
 
