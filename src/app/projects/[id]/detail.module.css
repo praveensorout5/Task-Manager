@@ -260,3 +260,15 @@
     width: 100%;
   }
 }
+
+.dragOverlay {
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.dragOverlay .taskCard {
+  box-shadow: var(--shadow-xl);
+  border-color: var(--accent-primary);
+  transform: rotate(2deg);
+  opacity: 0.9;
+}

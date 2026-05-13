@@ -114,6 +114,14 @@ export async function POST(req) {
       taskId: task.id,
     });
 
+    // Notify assigned user
+    if (task.assignedTo) {
+      const { notifyTaskAssigned } = require('@/lib/email');
+      notifyTaskAssigned(task.assignedTo, task, task.project).catch(err => 
+        console.error('Failed to send notification:', err)
+      );
+    }
+
     return apiResponse(task, 'Task created successfully', 201);
   } catch (error) {
     console.error('Create task error:', error);
