@@ -28,9 +28,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const publicPaths = ['/login', '/signup'];
+    const publicPaths = ['/', '/login', '/signup'];
     if (publicPaths.includes(pathname)) {
-      setLoading(false);
+      // Still try to fetch user if we have a token, but don't block loading
+      fetchUser().finally(() => setLoading(false));
       return;
     }
     fetchUser();

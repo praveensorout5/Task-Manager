@@ -11,26 +11,40 @@ export default function TeamPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTeam = async () => {
-    try {
-      // Fetch full system user directory
-      const res = await fetch('/api/users');
-      
-      if (res.ok) {
-        const data = await res.json();
-        setMembers(data.data || []);
-      } else {
-        toast.error('Failed to load team members');
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('An error occurred while loading the team');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const res = await fetch('/api/projects');
+        if (res.ok) {
+          const data = await res.json();
+          const projects = data.data || [];
+          
+          // Extract unique members across all projects
+          const memberMap = new Map();
+          projects.forEach(p => {
+            p.members?.forEach(m => {
+              if (!memberMap.has(m.userId)) {
+                memberMap.set(m.userId, {
+                  ...m.user,
+                  role: m.role,
+                  projects: [p.title],
+                });
+              } else {
+                const existing = memberMap.get(m.userId);
+                if (!existing.projects.includes(p.title)) {
+                  existing.projects.push(p.title);
+                }
+              }
+            });
+          });
+          setMembers(Array.from(memberMap.values()));
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTeam();
   }, []);
 
@@ -46,6 +60,7 @@ export default function TeamPage() {
     );
   }
 
+  // Generate consistent colors for avatars
   const colors = [
     'linear-gradient(135deg, #6366f1, #8b5cf6)',
     'linear-gradient(135deg, #3b82f6, #06b6d4)',
@@ -58,12 +73,10 @@ export default function TeamPage() {
   return (
     <div className="fade-in">
       <div className={styles.headerSection}>
-        <div>
-          <h2 className="section-title">Team Directory</h2>
-          <p className={styles.headerSubtitle}>
-            {members.length} team member{members.length !== 1 ? 's' : ''} currently in TaskFlow
-          </p>
-        </div>
+        <h2 className="section-title">Team Members</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+          {members.length} team member{members.length !== 1 ? 's' : ''} across your projects
+        </p>
       </div>
 
       <div className={styles.grid}>
@@ -78,19 +91,17 @@ export default function TeamPage() {
               </div>
               <h4 className={styles.memberName}>{member.name}</h4>
               <p className={styles.memberEmail}>{member.email}</p>
-              <div className={styles.roleWrapper}>
-                <span className={`badge ${member.role === 'ADMIN' ? 'badge-admin' : 'badge-member'}`}>
-                  {member.role}
-                </span>
-                {member.id === user?.id && <span className={styles.meTag}> (You)</span>}
-              </div>
+              <span className={`badge ${member.role === 'ADMIN' ? 'badge-admin' : 'badge-member'}`}>
+                {member.role}
+              </span>
             </div>
-            
-            {/* Project info could be added back later if needed via a separate API call */}
             <div className={styles.cardBottom}>
-              <p className={styles.memberSince}>
-                Member since {new Date(member.createdAt).toLocaleDateString()}
-              </p>
+              <span className={styles.projectLabel}>Projects</span>
+              <div className={styles.projectTags}>
+                {member.projects.map((p, i) => (
+                  <span key={i} className={styles.projectTag}>{p}</span>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -98,8 +109,8 @@ export default function TeamPage() {
         {members.length === 0 && (
           <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
             <span className="empty-state-icon">👥</span>
-            <h4>No users found</h4>
-            <p>New members will appear here as soon as they create an account.</p>
+            <h4>No team members found</h4>
+            <p>Join or create a project to see your team here.</p>
           </div>
         )}
       </div>

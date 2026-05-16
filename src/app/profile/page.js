@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import styles from './profile.module.css';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { user, loading: authLoading, refreshUser } = useAuth();
   const toast = useToast();
 
@@ -18,6 +20,12 @@ export default function ProfilePage() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [authLoading, user, router]);
+
+  useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -27,9 +35,16 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  if (authLoading || !user) {
-    return <div className="loading-text">Loading profile...</div>;
+  if (authLoading) {
+    return (
+      <div className="fade-in" style={{ textAlign: 'center', marginTop: '4rem' }}>
+        <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1rem' }}></div>
+        <p className="loading-text">Loading your profile...</p>
+      </div>
+    );
   }
+
+  if (!user) return null; // Will redirect via useEffect
 
   const handleUpdate = async (e) => {
     e.preventDefault();

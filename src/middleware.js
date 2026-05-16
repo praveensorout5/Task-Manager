@@ -6,8 +6,8 @@ export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
   // Public paths — no auth needed
-  const publicPaths = ['/', '/login', '/signup', '/api/auth/login', '/api/auth/signup'];
-  const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
+  const publicPaths = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
+  const isPublic = publicPaths.some(p => pathname.startsWith(p));
   
   // Static assets
   const isStatic = pathname.startsWith('/_next') || pathname.startsWith('/favicon');
