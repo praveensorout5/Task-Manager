@@ -3,8 +3,15 @@
 # Sync database schema
 if [ -z "$DATABASE_URL" ]; then
   echo "❌ Error: DATABASE_URL is not set!"
-else
-  echo "✅ DATABASE_URL is set (Length: ${#DATABASE_URL})"
+  exit 1
+fi
+
+# Switch provider to postgresql for production (Railway)
+# This allows the same repo to work with SQLite locally and Postgres on Railway
+echo "🌐 Environment: $NODE_ENV"
+if [ "$NODE_ENV" = "production" ] || [ -n "$RAILWAY_ENVIRONMENT" ]; then
+  echo "🔄 Switching Prisma provider to postgresql for production..."
+  sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
 fi
 
 echo "🔄 Syncing database schema..."

@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  // Use postgresql for production (Railway)
-  provider = "postgresql"
+  // Use sqlite for local development
+  provider = "sqlite"
   url      = env("DATABASE_URL")
   
-  // Use sqlite for local development
-  // provider = "sqlite"
+  // Use postgresql for production (Railway)
+  // provider = "postgresql"
   // url      = env("DATABASE_URL")
 }
 
