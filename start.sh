@@ -6,12 +6,21 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
+# Print safe debug info about DATABASE_URL
+DB_PROTOCOL=$(echo $DATABASE_URL | cut -d: -f1)
+echo "📂 DATABASE_URL protocol detected: $DB_PROTOCOL"
+
 # Switch provider to postgresql for production (Railway)
 # This allows the same repo to work with SQLite locally and Postgres on Railway
 echo "🌐 Environment: $NODE_ENV"
-if [ "$NODE_ENV" = "production" ] || [ -n "$RAILWAY_ENVIRONMENT" ]; then
-  echo "🔄 Switching Prisma provider to postgresql for production..."
+if [ "$DB_PROTOCOL" = "postgresql" ] || [ "$DB_PROTOCOL" = "postgres" ]; then
+  echo "🔄 Switching Prisma provider to postgresql..."
   sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+elif [ "$DB_PROTOCOL" = "file" ]; then
+  echo "💾 Using SQLite provider..."
+  sed -i 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
+else
+  echo "⚠️ Warning: Unknown database protocol ($DB_PROTOCOL). Defaulting to current schema provider."
 fi
 
 echo "🔄 Syncing database schema..."
