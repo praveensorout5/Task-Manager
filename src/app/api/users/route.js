@@ -1,9 +1,8 @@
 import { prisma } from '@/lib/prisma';
-import { getAuthUser, isAdmin } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 import { apiResponse, apiError } from '@/lib/apiResponse';
-import bcrypt from 'bcryptjs';
 
-// GET /api/users — List all users (Admin) or search users (all auth users)
+// GET /api/users — List all system users or search users
 export async function GET(req) {
   try {
     const authUser = await getAuthUser();
@@ -30,11 +29,7 @@ export async function GET(req) {
       return apiResponse(users, 'Users found');
     }
 
-    // List all mode (Admin only)
-    if (!isAdmin(authUser.userRole)) {
-      return apiError('Forbidden: Admin access required to list all users', 403);
-    }
-
+    // List all mode (Public directory for authenticated users)
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -53,42 +48,3 @@ export async function GET(req) {
   }
 }
 
-// POST /api/users — Manually create a user (Admin only)
-export async function POST(req) {
-  try {
-    const authUser = await getAuthUser();
-    if (!authUser || !isAdmin(authUser.userRole)) {
-      return apiError('Forbidden: Admin access required', 403);
-    }
-
-    const { name, email, password, role } = await req.json();
-
-    if (!name || !email || !password) {
-      return apiError('Name, email, and password are required', 400);
-    }
-
-    // Check existing
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return apiError('User with this email already exists', 400);
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: role === 'ADMIN' ? 'ADMIN' : 'MEMBER',
-      },
-    });
-
-    const { password: _, ...userWithoutPassword } = user;
-    return apiResponse(userWithoutPassword, 'User created successfully', 201);
-  } catch (error) {
-    console.error('Create user error:', error);
-    return apiError('Failed to create user');
-  }
-}
