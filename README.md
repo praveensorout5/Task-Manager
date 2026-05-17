@@ -76,4 +76,4 @@ TaskFlow is a production-ready, full-stack team task management application buil
 
 ---
 
-Built with ❤️ by Antigravity.
+Built using Antigravity by Praveen Kumar.
